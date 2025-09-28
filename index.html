@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>North Mindanao Sales Update</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: url("space.avif") no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Arrow on right side, moving up and down slowly, flipping */
+    .title-image {
+      position: absolute;
+      height: 150px;
+      width: auto;
+      opacity: 0.8;
+      z-index: 2;
+      right: 20px;
+      top: 90%;
+      transform: translateY(0);
+      animation: verticalMove 12s ease-in-out infinite, slowFlip 12s linear infinite;
+    }
+
+    @keyframes verticalMove {
+      0% { top: 90%; }
+      50% { top: 10%; }
+      100% { top: 90%; }
+    }
+    @keyframes slowFlip {
+      0% { transform: rotateY(0deg); }
+      50% { transform: rotateY(180deg); }
+      100% { transform: rotateY(360deg); }
+    }
+
+    h1 {
+      position: relative;
+      z-index: 3;
+      font-size: 2.5em;
+      color: #b30000;
+      text-align: center;
+      margin: 100px 0 60px 0;
+      animation: popup 2.5s infinite ease-in-out;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+    @keyframes popup {
+      0%,100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    /* Clickable headers */
+    .clickable {
+      color: #b30000;
+      cursor: pointer;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+      margin: 40px auto 10px auto;
+      padding: 10px;
+      border: 2px solid #b30000;
+      width: 90%;
+      max-width: 1000px;
+      border-radius: 8px;
+      transition: background-color 0.3s;
+      z-index: 3;
+      position: relative;
+      background-color: rgba(255,255,255,0.8);
+    }
+    .clickable:hover { background-color: rgba(179,0,0,0.2); }
+
+    .table-container {
+      background-color: rgba(255,255,255,0.9);
+      border-radius: 12px;
+      padding: 20px;
+      margin: 0 auto 40px auto;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      overflow-x: auto;
+      width: 90%;
+      max-width: 1000px;
+      display: none;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.5s ease;
+      position: relative;
+      z-index: 3;
+    }
+    .table-container.show { display: block; opacity: 1; transform: translateY(0); }
+
+    table.sales-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      text-align: center;
+    }
+    table.sales-table th, table.sales-table td {
+      border: 1px solid #999;
+      padding: 8px;
+    }
+    table.sales-table th {
+      background-color: #b30000;
+      color: white;
+    }
+    table.sales-table tr:nth-child(even) { background-color: #f9f9f9; }
+
+    .green { color: green; font-weight: bold; }
+    .red { color: red; font-weight: bold; }
+    .orange { color: orange; font-weight: bold; }
+
+    /* Highlight all TOTAL rows */
+    .sales-table tr:last-child { background-color: #f9dcdc; font-weight: bold; }
+    /* Extra emphasis for TOTAL NORTH MINDANAO (Aug + YTD tables) */
+    .sales-table tr.total-northmin {
+      background-color: #ffcccc;
+      border-top: 3px solid #b30000;
+      border-bottom: 3px solid #b30000;
+      font-size: 1.1em;
+    }
+
+    ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
+
+    /* -------- Census (accordion rows in same table) -------- */
+    table.census-summary { width: 100%; border-collapse: collapse; font-size: 14px; text-align: center; }
+    table.census-summary th, table.census-summary td { border: 1px solid #999; padding: 10px; background-color: #fff; }
+    table.census-summary th { background-color: #b30000; color: #fff; }
+    tr.summary-row { cursor: pointer; transition: background 0.25s; }
+    tr.summary-row:hover { background: #fff3f3; }
+    tr.summary-row.active { background: #ffe0e0; }
+
+    /* Detail row container that slides open */
+    tr.detail-row td { padding: 0; border: none; background: transparent; }
+    .slide-wrap {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(-6px);
+      transition: max-height 0.4s ease, opacity 0.35s ease, transform 0.35s ease;
+      background: rgba(255,255,255,0.95);
+      border-left: 2px solid #b30000;
+      border-right: 2px solid #b30000;
+      border-bottom: 2px solid #b30000;
+      border-radius: 0 0 10px 10px;
+    }
+    .slide-wrap.open {
+      max-height: 600px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* inner breakdown table */
+    table.breakdown-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin: 0;
+    }
+    table.breakdown-table th, table.breakdown-table td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      background: #fff;
+      text-align: center;
+    }
+    table.breakdown-table th {
+      background: #f4b3b3;
+      color: #3a0000;
+      font-weight: bold;
+    }
+    table.breakdown-table tr.total-row {
+      background-color: #f9dcdc;
+      font-weight: bold;
+    }
+
+    /* Label style for summary distributor names */
+    .dist-name { font-weight: bold; text-align: left; padding-left: 12px; }
+
+    /* Make contenteditable look like normal text (user requested no special highlight) */
+    [contenteditable="true"] { outline: none; }
+  </style>
+</head>
+<body>
+
+  <!-- Arrow image -->
+  <img src="1000044684.jpg" alt="Arrow" class="title-image" />
+
+  <!-- Title -->
+  <h1>North Mindanao Sales Update</h1>
+
+  <!-- Clickable headers -->
+  <div class="clickable" onclick="toggleTable('aug2025')">September 2025 Sales Performance</div>
+  <div id="aug2025" class="table-container">
+    <table class="sales-table" id="augTable">
+      <thead>
+        <tr>
+          <th>Distributor</th>
+          <th>MTD</th>
+          <th>Target</th>
+          <th>Performance vs Target</th>
+          <th>Balance vs Plan</th>
+          <th>2024 September</th>
+          <th>Performance vs YAGO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>PIPRIME CDO</td>
+          <td data-key="aug_piprime_mtd" contenteditable="true">7,340,376</td>
+          <td data-key="aug_piprime_target" contenteditable="true">7,353,194</td>
+          <td data-key="aug_piprime_perf" contenteditable="true">99%</td>
+          <td data-key="aug_piprime_bal" contenteditable="true">-12,818</td>
+          <td data-key="aug_piprime_2024" contenteditable="true">6,684,721</td>
+          <td data-key="aug_piprime_yago" contenteditable="true">10%</td>
+        </tr>
+        <tr>
+          <td>DJ MART</td>
+          <td data-key="aug_dj_mtd" contenteditable="true">8,281,334</td>
+          <td data-key="aug_dj_target" contenteditable="true">9,191,854</td>
+          <td data-key="aug_dj_perf" contenteditable="true">90%</td>
+          <td data-key="aug_dj_bal" contenteditable="true">-910,520</td>
+          <td data-key="aug_dj_2024" contenteditable="true">8,590,518</td>
+          <td data-key="aug_dj_yago" contenteditable="true">-4%</td>
+        </tr>
+        <tr>
+          <td>NMGS CORPORATION</td>
+          <td data-key="aug_nmgs_mtd" contenteditable="true">20,128,535</td>
+          <td data-key="aug_nmgs_target" contenteditable="true">13,100,327</td>
+          <td data-key="aug_nmgs_perf" contenteditable="true">154%</td>
+          <td data-key="aug_nmgs_bal" contenteditable="true">7,028,208</td>
+          <td data-key="aug_nmgs_2024" contenteditable="true">12,243,296</td>
+          <td data-key="aug_nmgs_yago" contenteditable="true">64%</td>
+        </tr>
+        <tr class="total-northmin">
+          <td><b>TOTAL NORTHMIN</b></td>
+          <td data-key="aug_total_mtd" contenteditable="true"><b>35,750,244</b></td>
+          <td data-key="aug_total_target" contenteditable="true"><b>29,645,374</b></td>
+          <td data-key="aug_total_perf" contenteditable="true" class="green"><b>121%</b></td>
+          <td data-key="aug_total_bal" contenteditable="true"><b>6,104,870</b></td>
+          <td data-key="aug_total_2024" contenteditable="true"><b>27,518,535</b></td>
+          <td data-key="aug_total_yago" contenteditable="true" class="green"><b>30%</b></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="clickable" onclick="toggleTable('ytd')">YTD Performance NSV</div>
+  <div id="ytd" class="table-container">
+    <table class="sales-table" id="ytdTable">
+      <thead>
+        <tr>
+          <th>Distributor</th>
+          <th>2025 Actual</th>
+          <th>YTD Target</th>
+          <th>Performance vs Target</th>
+          <th>Balance vs Plan</th>
+          <th>2024 Actual</th>
+          <th>Performance vs YAGO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>PIPRIME CDO</td>
+          <td data-key="ytd_piprime_actual" contenteditable="true">59,201,141</td>
+          <td data-key="ytd_piprime_target" contenteditable="true">61,646,013</td>
+          <td data-key="ytd_piprime_perf" contenteditable="true">96%</td>
+          <td data-key="ytd_piprime_bal" contenteditable="true">-2,444,872</td>
+          <td data-key="ytd_piprime_2024" contenteditable="true">53,803,007</td>
+          <td data-key="ytd_piprime_yago" contenteditable="true">10%</td>
+        </tr>
+        <tr>
+          <td>DJ MART</td>
+          <td data-key="ytd_dj_actual" contenteditable="true">68,230,554</td>
+          <td data-key="ytd_dj_target" contenteditable="true">68,578,562</td>
+          <td data-key="ytd_dj_perf" contenteditable="true" class="green">99%</td>
+          <td data-key="ytd_dj_bal" contenteditable="true">-348,008</td>
+          <td data-key="ytd_dj_2024" contenteditable="true">65,158,956</td>
+          <td data-key="ytd_dj_yago" contenteditable="true">5%</td>
+        </tr>
+        <tr>
+          <td>NMGS CORPORATION</td>
+          <td data-key="ytd_nmgs_actual" contenteditable="true">129,029,561</td>
+          <td data-key="ytd_nmgs_target" contenteditable="true">112,781,127</td>
+          <td data-key="ytd_nmgs_perf" contenteditable="true">114%</td>
+          <td data-key="ytd_nmgs_bal" contenteditable="true">16,248,434</td>
+          <td data-key="ytd_nmgs_2024" contenteditable="true">102,085,885</td>
+          <td data-key="ytd_nmgs_yago" contenteditable="true">26%</td>
+        </tr>
+        <tr class="total-northmin">
+          <td><b>TOTAL NORTHMIN</b></td>
+          <td data-key="ytd_total_actual" contenteditable="true"><b>256,461,256</b></td>
+          <td data-key="ytd_total_target" contenteditable="true"><b>243,000,702</b></td>
+          <td data-key="ytd_total_perf" contenteditable="true" class="green"><b>106%</b></td>
+          <td data-key="ytd_total_bal" contenteditable="true"><b>13,455,554</b></td>
+          <td data-key="ytd_total_2024" contenteditable="true"><b>221,047,848</b></td>
+          <td data-key="ytd_total_yago" contenteditable="true" class="green"><b>16%</b></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- New Census: Summary with expandable breakdown rows -->
+  <div class="clickable" onclick="toggleTable('census')">Census</div>
+  <div id="census" class="table-container">
+    <table class="census-summary" id="censusSummary">
+      <thead>
+        <tr>
+          <th>Distributor</th>
+          <th>Actual Census P12</th>
+          <th>2025 Census Target</th>
+          <th>Performance</th>
+          <th>2024 Census</th>
+          <th>Growth Performance</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- DJ MART summary row -->
+        <tr class="summary-row" data-target="djmart-detail" aria-expanded="false">
+          <td class="dist-name summary-cell">DJ MART</td>
+          <td class="summary-cell" data-key="census_dj_actual" contenteditable="true">1,200</td>
+          <td class="summary-cell" data-key="census_dj_target" contenteditable="true">1,300</td>
+          <td class="summary-cell" data-key="census_dj_perf" contenteditable="true">92%</td>
+          <td class="summary-cell" data-key="census_dj_2024" contenteditable="true">1,150</td>
+          <td class="summary-cell" data-key="census_dj_growth" contenteditable="true">4%</td>
+        </tr>
+        <!-- DJ MART detail row -->
+        <tr class="detail-row">
+          <td colspan="6">
+            <div id="djmart-detail" class="slide-wrap">
+              <table class="breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Trade Channel Type</th>
+                    <th>Census P12</th>
+                    <th>UBA P3</th>
+                    <th>UBA vs Census Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Supermarket</td>
+                    <td data-key="dj_sup_census" contenteditable="true">140</td>
+                    <td data-key="dj_sup_uba" contenteditable="true">120</td>
+                    <td data-key="dj_sup_perf" contenteditable="true">86%</td>
+                  </tr>
+                  <tr>
+                    <td>Grocery</td>
+                    <td data-key="dj_gro_census" contenteditable="true">380</td>
+                    <td data-key="dj_gro_uba" contenteditable="true">360</td>
+                    <td data-key="dj_gro_perf" contenteditable="true">95%</td>
+                  </tr>
+                  <tr>
+                    <td>Wet Market Stalls</td>
+                    <td data-key="dj_wet_census" contenteditable="true">120</td>
+                    <td data-key="dj_wet_uba" contenteditable="true">90</td>
+                    <td data-key="dj_wet_perf" contenteditable="true">-25%</td>
+                  </tr>
+                  <tr>
+                    <td>Dry Market Stalls</td>
+                    <td data-key="dj_dry_census" contenteditable="true">160</td>
+                    <td data-key="dj_dry_uba" contenteditable="true">150</td>
+                    <td data-key="dj_dry_perf" contenteditable="true">94%</td>
+                  </tr>
+                  <tr>
+                    <td>Sari-Sari Store</td>
+                    <td data-key="dj_sari_census" contenteditable="true">400</td>
+                    <td data-key="dj_sari_uba" contenteditable="true">380</td>
+                    <td data-key="dj_sari_perf" contenteditable="true">95%</td>
+                  </tr>
+                  <tr class="total-row">
+                    <td>Total</td>
+                    <td data-key="dj_total_census" contenteditable="true">1,200</td>
+                    <td data-key="dj_total_uba" contenteditable="true">1,100</td>
+                    <td data-key="dj_total_perf" contenteditable="true">-8%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+
+        <!-- NMGS summary row -->
+        <tr class="summary-row" data-target="nmgs-detail" aria-expanded="false">
+          <td class="dist-name summary-cell">NMGS CORPORATION</td>
+          <td class="summary-cell" data-key="census_nmgs_actual" contenteditable="true">1,800</td>
+          <td class="summary-cell" data-key="census_nmgs_target" contenteditable="true">1,700</td>
+          <td class="summary-cell" data-key="census_nmgs_perf" contenteditable="true">106%</td>
+          <td class="summary-cell" data-key="census_nmgs_2024" contenteditable="true">1,500</td>
+          <td class="summary-cell" data-key="census_nmgs_growth" contenteditable="true">20%</td>
+        </tr>
+        <!-- NMGS detail row -->
+        <tr class="detail-row">
+          <td colspan="6">
+            <div id="nmgs-detail" class="slide-wrap">
+              <table class="breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Trade Channel Type</th>
+                    <th>Census P12</th>
+                    <th>UBA P3</th>
+                    <th>UBA vs Census Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Supermarket</td><td data-key="nmgs_sup_census" contenteditable="true">220</td><td data-key="nmgs_sup_uba" contenteditable="true">240</td><td data-key="nmgs_sup_perf" contenteditable="true">109%</td></tr>
+                  <tr><td>Grocery</td><td data-key="nmgs_gro_census" contenteditable="true">600</td><td data-key="nmgs_gro_uba" contenteditable="true">620</td><td data-key="nmgs_gro_perf" contenteditable="true">103%</td></tr>
+                  <tr><td>Wet Market Stalls</td><td data-key="nmgs_wet_census" contenteditable="true">180</td><td data-key="nmgs_wet_uba" contenteditable="true">150</td><td data-key="nmgs_wet_perf" contenteditable="true">-17%</td></tr>
+                  <tr><td>Dry Market Stalls</td><td data-key="nmgs_dry_census" contenteditable="true">240</td><td data-key="nmgs_dry_uba" contenteditable="true">260</td><td data-key="nmgs_dry_perf" contenteditable="true">108%</td></tr>
+                  <tr><td>Sari-Sari Store</td><td data-key="nmgs_sari_census" contenteditable="true">560</td><td data-key="nmgs_sari_uba" contenteditable="true">570</td><td data-key="nmgs_sari_perf" contenteditable="true">102%</td></tr>
+                  <tr class="total-row"><td>Total</td><td data-key="nmgs_total_census" contenteditable="true">1,800</td><td data-key="nmgs_total_uba" contenteditable="true">1,840</td><td data-key="nmgs_total_perf" contenteditable="true">2%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+
+        <!-- PIPRIME summary row -->
+        <tr class="summary-row" data-target="piprime-detail" aria-expanded="false">
+          <td class="dist-name summary-cell">PIPRIME CDO</td>
+          <td class="summary-cell" data-key="census_pip_actual" contenteditable="true">1,100</td>
+          <td class="summary-cell" data-key="census_pip_target" contenteditable="true">1,250</td>
+          <td class="summary-cell" data-key="census_pip_perf" contenteditable="true">88%</td>
+          <td class="summary-cell" data-key="census_pip_2024" contenteditable="true">1,000</td>
+          <td class="summary-cell" data-key="census_pip_growth" contenteditable="true">10%</td>
+        </tr>
+        <!-- PIPRIME detail row -->
+        <tr class="detail-row">
+          <td colspan="6">
+            <div id="piprime-detail" class="slide-wrap">
+              <table class="breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Trade Channel Type</th>
+                    <th>Census P12</th>
+                    <th>UBA P3</th>
+                    <th>UBA vs Census Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Supermarket</td><td data-key="pip_sup_census" contenteditable="true">130</td><td data-key="pip_sup_uba" contenteditable="true">120</td><td data-key="pip_sup_perf" contenteditable="true">92%</td></tr>
+                  <tr><td>Grocery</td><td data-key="pip_gro_census" contenteditable="true">360</td><td data-key="pip_gro_uba" contenteditable="true">330</td><td data-key="pip_gro_perf" contenteditable="true">92%</td></tr>
+                  <tr><td>Wet Market Stalls</td><td data-key="pip_wet_census" contenteditable="true">110</td><td data-key="pip_wet_uba" contenteditable="true">100</td><td data-key="pip_wet_perf" contenteditable="true">91%</td></tr>
+                  <tr><td>Dry Market Stalls</td><td data-key="pip_dry_census" contenteditable="true">170</td><td data-key="pip_dry_uba" contenteditable="true">150</td><td data-key="pip_dry_perf" contenteditable="true">-12%</td></tr>
+                  <tr><td>Sari-Sari Store</td><td data-key="pip_sari_census" contenteditable="true">330</td><td data-key="pip_sari_uba" contenteditable="true">300</td><td data-key="pip_sari_perf" contenteditable="true">-9%</td></tr>
+                  <tr class="total-row"><td>Total</td><td data-key="pip_total_census" contenteditable="true">1,100</td><td data-key="pip_total_uba" contenteditable="true">1,000</td><td data-key="pip_total_perf" contenteditable="true">-9%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+
+        <!-- TOTAL NORTHMIN summary row -->
+        <tr class="summary-row" data-target="northmin-detail" aria-expanded="false">
+          <td class="dist-name summary-cell"><b>TOTAL NORTHMIN</b></td>
+          <td class="summary-cell" data-key="census_total_actual" contenteditable="true"><b>4,100</b></td>
+          <td class="summary-cell" data-key="census_total_target" contenteditable="true"><b>4,250</b></td>
+          <td class="summary-cell" data-key="census_total_perf" contenteditable="true"><b>96%</b></td>
+          <td class="summary-cell" data-key="census_total_2024" contenteditable="true"><b>3,650</b></td>
+          <td class="summary-cell" data-key="census_total_growth" contenteditable="true"><b>12%</b></td>
+        </tr>
+        <!-- TOTAL NORTHMIN detail row -->
+        <tr class="detail-row">
+          <td colspan="6">
+            <div id="northmin-detail" class="slide-wrap">
+              <table class="breakdown-table">
+                <thead>
+                  <tr>
+                    <th>Trade Channel Type</th>
+                    <th>Census P12</th>
+                    <th>UBA P3</th>
+                    <th>UBA vs Census Performance</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td>Supermarket</td><td data-key="tot_sup_census" contenteditable="true">490</td><td data-key="tot_sup_uba" contenteditable="true">480</td><td data-key="tot_sup_perf" contenteditable="true">98%</td></tr>
+                  <tr><td>Grocery</td><td data-key="tot_gro_census" contenteditable="true">1,340</td><td data-key="tot_gro_uba" contenteditable="true">1,310</td><td data-key="tot_gro_perf" contenteditable="true">98%</td></tr>
+                  <tr><td>Wet Market Stalls</td><td data-key="tot_wet_census" contenteditable="true">410</td><td data-key="tot_wet_uba" contenteditable="true">340</td><td data-key="tot_wet_perf" contenteditable="true">-17%</td></tr>
+                  <tr><td>Dry Market Stalls</td><td data-key="tot_dry_census" contenteditable="true">570</td><td data-key="tot_dry_uba" contenteditable="true">560</td><td data-key="tot_dry_perf" contenteditable="true">98%</td></tr>
+                  <tr><td>Sari-Sari Store</td><td data-key="tot_sari_census" contenteditable="true">1,290</td><td data-key="tot_sari_uba" contenteditable="true">1,250</td><td data-key="tot_sari_perf" contenteditable="true">97%</td></tr>
+                  <tr class="total-row"><td>Total</td><td data-key="tot_total_census" contenteditable="true">4,100</td><td data-key="tot_total_uba" contenteditable="true">3,940</td><td data-key="tot_total_perf" contenteditable="true">-4%</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+
+  <div class="clickable" onclick="toggleTable('activities')">Planned Activities</div>
+  <div id="activities" class="table-container">
+    <ul id="activitiesList">
+      <li data-key="act_1" contenteditable="true">Visit DJ MART outlets for on-ground census checks</li>
+      <li data-key="act_2" contenteditable="true">Follow up with NMGS for merchandising plan</li>
+      <li data-key="act_3" contenteditable="true">Prepare consolidated report for PIPRIME</li>
+    </ul>
+  </div>
+
+  <script>
+    // Toggle top-level tables (Aug, YTD, Census, Activities)
+    function toggleTable(id) {
+      const allTables = document.querySelectorAll('.table-container');
+      allTables.forEach(table => {
+        if (table.id === id) table.classList.toggle('show');
+        else table.classList.remove('show');
+      });
+    }
+
+    // --- LocalStorage save/restore for contenteditable cells ---
+    const STORAGE_KEY = 'northmin_saved_values_v1';
+
+    // Helper: load saved map from localStorage
+    function loadSavedMap() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        console.warn('Failed to parse saved data', e);
+        return {};
+      }
+    }
+    // Helper: save map back to localStorage
+    function saveMap(map) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(map));
+      } catch (e) {
+        console.warn('Failed to save to localStorage', e);
+      }
+    }
+
+    // Restore saved values to page
+    function restoreEditableValues() {
+      const map = loadSavedMap();
+      if (!map) return;
+      Object.keys(map).forEach(key => {
+        const el = document.querySelector('[data-key="' + key + '"]');
+        if (el) el.innerText = map[key];
+      });
+      // After restoring values, apply coloring
+      applyAutoColoringToAll();
+    }
+
+    // Save single element's value
+    function saveElementValue(el) {
+      const key = el.getAttribute('data-key');
+      if (!key) return;
+      const map = loadSavedMap();
+      map[key] = el.innerText.trim();
+      saveMap(map);
+    }
+
+    // Apply auto-coloring to one element
+    function autoColorElement(el) {
+      if (!el) return;
+      el.classList.remove('red', 'green'); // reset
+      const txt = el.innerText.trim();
+      if (txt.length === 0) return;
+      // Negative starts with '-' (number or percentage)
+      if (txt.startsWith('-')) {
+        el.classList.add('red');
+        return;
+      }
+      // Percentages: positive or negative
+      if (txt.endsWith('%')) {
+        const v = parseFloat(txt.replace('%','').replace(/,/g,''));
+        if (!isNaN(v)) {
+          if (v < 0) el.classList.add('red');
+          else if (v > 0) el.classList.add('green');
+        }
+        return;
+      }
+      // Also treat plain numbers? (No color unless negative)
+      // nothing else to do
+    }
+
+    // Apply coloring to all cells
+    function applyAutoColoringToAll() {
+      document.querySelectorAll('[data-key]').forEach(el => {
+        autoColorElement(el);
+      });
+    }
+
+    // Setup event listeners for editable cells
+    function setupEditableSave() {
+      // find all contenteditable elements with data-key
+      const editableEls = document.querySelectorAll('[contenteditable="true"][data-key]');
+      editableEls.forEach(el => {
+        // Save on input (live) and on blur
+        el.addEventListener('input', debounce(() => {
+          saveElementValue(el);
+          autoColorElement(el);
+        }, 300));
+        el.addEventListener('blur', () => {
+          saveElementValue(el);
+          autoColorElement(el);
+        });
+        // allow Enter in contenteditable to commit but not insert <div>
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            el.blur();
+          }
+        });
+      });
+
+      // For activities list items (they also have data-key)
+      const activityEls = document.querySelectorAll('#activitiesList [contenteditable="true"][data-key]');
+      activityEls.forEach(el => {
+        el.addEventListener('input', debounce(() => {
+          saveElementValue(el);
+        }, 300));
+        el.addEventListener('blur', () => {
+          saveElementValue(el);
+        });
+      });
+    }
+
+    // Simple debounce helper
+    function debounce(fn, wait) {
+      let t;
+      return function(...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), wait);
+      };
+    }
+
+    // --- Census accordion behavior ---
+    function setupCensusAccordion() {
+      const summaryRows = document.querySelectorAll('#census .summary-row');
+      summaryRows.forEach(row => {
+        row.addEventListener('click', () => {
+          const targetId = row.getAttribute('data-target');
+          const target = document.getElementById(targetId);
+
+          // Close others
+          document.querySelectorAll('#census .slide-wrap.open').forEach(openEl => {
+            if (openEl.id !== targetId) openEl.classList.remove('open');
+          });
+          document.querySelectorAll('#census .summary-row.active').forEach(activeRow => {
+            if (activeRow !== row) activeRow.classList.remove('active');
+          });
+
+          // Toggle current
+          target.classList.toggle('open');
+          row.classList.toggle('active');
+          row.setAttribute('aria-expanded', target.classList.contains('open') ? 'true' : 'false');
+        });
+      });
+    }
+
+    // Initialize page behaviour on DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', () => {
+      // restore saved values first
+      restoreEditableValues();
+
+      // setup listeners for editable cells
+      setupEditableSave();
+
+      // setup census accordion
+      setupCensusAccordion();
+
+      // Also auto color once at start for any cells not loaded from storage
+      applyAutoColoringToAll();
+    });
+  </script>
+</body>
+</html>
